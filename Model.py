@@ -19,16 +19,24 @@ import numpy as np
 
 class Code_Rec_Model(nn.Module):
 
-    def __init__(self):
+    def __init__(self,vocab_size ,embedding_size ,hidden_size):
         super(Code_Rec_Model, self).__init__()
+        self.word_embedding = nn.Embedding(vocab_size,embedding_size)
+        self.lstm = nn.LSTM(embedding_size,hidden_size)
+        self.linear = nn.Linear(hidden_size,vocab_size)
 
 
-    def forward(self, *input):
-
-        return None
+    def forward(self, text,hidden):
+        emb = self.word_embedding(text)
+        output,hidden = self.lstm(emb,hidden)
+        output = output.view(-1 ,output.shape[2])
+        out_vocab = self.linear(output)
+        out_vocab = out_vocab.view(output.size(0),output.size(1),out_vocab[-1] )
+        return out_vocab,hidden
 
 
 if __name__ == '__main__':
-    pass
+    model = Code_Rec_Model()
+
 
 
