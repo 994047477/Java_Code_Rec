@@ -26,13 +26,28 @@ class Code_Rec_Model(nn.Module):
         self.linear = nn.Linear(hidden_size,vocab_size)
 
 
-    def forward(self, text,hidden):
-        emb = self.word_embedding(text)
-        output,hidden = self.lstm(emb,hidden)
-        output = output.view(-1 ,output.shape[2])
+    def forward(self, text):
+
+        emb = self.word_embedding(text) # batch_size ,sequence , embedding
+        output,hidden = self.lstm(emb)  # 2,30,10  ,   2个tuple(30,10)
+        # print(np.shape(output),np.shape(hidden))
+        shape1,shape2 = output.shape[0],output.shape[1]
+        output = output[:,-1,:]
+        print(np.shape(output))
+
+        output = output.view(-1 ,output.shape[1]) # (2*30)*10
+        # print(np.shape(output))
         out_vocab = self.linear(output)
-        out_vocab = out_vocab.view(output.size(0),output.size(1),out_vocab[-1] )
+        # print(np.shape(out_vocab))#  60,1494348
+        out_vocab = out_vocab.view( shape1,-1 )
         return out_vocab,hidden
+
+    def init_hidden(self, bsz, requires_grad=True):
+        weight = next(self.parameters())
+        # return (weight.new_zeros((30, bsz, 10), requires_grad=requires_grad),
+        #             weight.new_zeros((30, bsz, 10), requires_grad=requires_grad))
+        return torch.rand((30, bsz, 10),requires_grad=requires_grad),\
+               torch.rand(((30, bsz, 10)),requires_grad=requires_grad)
 
 
 if __name__ == '__main__':

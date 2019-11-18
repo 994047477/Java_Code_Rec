@@ -110,17 +110,12 @@ class CodeDataset(Dataset):
 
     def __getitem__(self, index):
         # 返回的时候才将词转换成 embedding 放序号就行 ，不用转换成one-hot encoding
-        # index = 2
-        # print('index',self.word_indices['.'])
-        # print(self.All_sentences[:3])
-        # print(self.All_sentences[index])
-        # torch.tensor(self.All_sentences[index])
-        # print(torch.tensor([ self.word_indices[i] for i in self.All_sentences[index]]))
+        # return self.All_sentences[index], \
+        #        self.All_next_word[index]
+
         return torch.tensor([ self.word_indices[i] for i in self.All_sentences[index]]),\
                torch.tensor(self.word_indices[self.All_next_word[index]])
 
-        # print(index)
-        # return torch.Tensor(self.All_sentences[index]),torch.Tensor(self.All_next_word[index])
     def __len__(self):
         return len(self.All_next_word)
 if __name__ == '__main__':
