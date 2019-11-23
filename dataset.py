@@ -105,7 +105,7 @@ class CodeDataset(Dataset):
                 self.All_next_word.append(all_words1[i + maxlen])
                 # print('test',all_words1[i: i + maxlen],all_words1[i + maxlen])
 
-            if j == 2:
+            if j == 5:
                 break
 
     def __getitem__(self, index):

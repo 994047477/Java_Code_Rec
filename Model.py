@@ -33,12 +33,12 @@ class Code_Rec_Model(nn.Module):
         # print(np.shape(output),np.shape(hidden))
         shape1,shape2 = output.shape[0],output.shape[1]
         output = output[:,-1,:]
-        print(np.shape(output))
+        # print(np.shape(output))
 
-        output = output.view(-1 ,output.shape[1]) # (2*30)*10
+        output = output.view(-1 ,output.shape[1]) # (2)*10
         # print(np.shape(output))
         out_vocab = self.linear(output)
-        # print(np.shape(out_vocab))#  60,1494348
+        # print(np.shape(out_vocab))#  2,1494348
         out_vocab = out_vocab.view( shape1,-1 )
         return out_vocab,hidden
 

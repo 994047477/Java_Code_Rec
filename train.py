@@ -20,49 +20,46 @@ import os
 import random
 from Model import Code_Rec_Model
 from dataset import CodeDataset
+import os
 
+
+# os.environ['CUDA_VISIBLE_DEVICES']='0,1'
 
 def train():
     dataset = CodeDataset()
     # print(dataset)
     batch_size = 32
     vocab_size = 1494348
+    embedding_size = 300
+    hidden_size =10
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size)
-    model = Code_Rec_Model(vocab_size, 1000, 10).cuda()
+    model = Code_Rec_Model(vocab_size, embedding_size,hidden_size).cuda()
 
     loss_fn = nn.CrossEntropyLoss()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
-
-    for i, (X, Y) in enumerate(dataloader):
-        if torch.cuda.is_available():
-            X = X.cuda()
-            Y = Y.cuda()
-
-        print(i)
-        # print(X)
-        # print(np.shape(X))
-        print(Y)
-        # hidden = model.init_hidden(batch_size)
-        out_vocab,hidden= model(X)
-        out_vocab = out_vocab.view(-1, vocab_size)
-        loss = loss_fn(out_vocab,Y)
-        print(loss)
-        print(out_vocab)
-        print(Y)
-        # print(out_vocab)
-        print(np.shape(out_vocab))
-        print(np.shape(Y))
-        break
-
-    # model = Code_Rec_Model(vocab_size=1494348 ,embedding_size=100000,hidden_size= )
-    # if torch.cuda.is_available():
-    #     model = model.gpu()
-    #     X = X.cuda()
-    #     Y = Y.cuda()
-    # res = model(X)
+    epochs = 100
+    for epoch in range(epochs):
+        print(f'epoch[{epoch}]/[{epochs}]')
+        for i, (X, Y) in enumerate(dataloader):
+            if torch.cuda.is_available():
+                X = X.cuda()
+                Y = Y.cuda()
+            # hidden = model.init_hidden(batch_size)
+            out_vocab, hidden = model(X)
+            out_vocab = out_vocab.view(-1, vocab_size)
+            loss = loss_fn(out_vocab, Y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            print(loss)
+            print(f'i:{i} , loss:{loss}')
+            # print(out_vocab)
+            # print(Y)
+            # print(np.shape(out_vocab))
+            # print(np.shape(Y))
 
 
 if __name__ == '__main__':
