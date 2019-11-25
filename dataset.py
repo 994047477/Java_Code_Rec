@@ -84,6 +84,7 @@ class CodeDataset(Dataset):
         # 不能使用eye 生成  会爆内存
         
         maxlen = 30
+
         for j in range(len(lis)):
             print(f'{j}/{len(lis)}  {lis[j]}')
             try:
@@ -105,7 +106,7 @@ class CodeDataset(Dataset):
                 self.All_next_word.append(all_words1[i + maxlen])
                 # print('test',all_words1[i: i + maxlen],all_words1[i + maxlen])
 
-            if j == 5:
+            if j == 500:
                 break
 
     def __getitem__(self, index):

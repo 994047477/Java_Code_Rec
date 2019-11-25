@@ -23,6 +23,13 @@ if __name__ == '__main__':
     di_5 = set([k for k, v in di.items() if v > 5])
     di_5.add('<unk>')
     print(len(di_5))  # 1494348  one-hot vector
+    words = sorted(list(di_5))
+    word_indices = dict((word, index) for index, word in enumerate(words))
+    print(words[1407])
+    print(words[1406])
+    print(words[1417])
+    print(words[1422])
+
 
     # counter  = Counter(di_3)
 
