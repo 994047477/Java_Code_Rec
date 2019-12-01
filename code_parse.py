@@ -77,6 +77,6 @@ if __name__ == '__main__':
                 di[res[i].value]=di.get(res[i].value,0)+1
         print('dict len', len(di))
 
-    with open('all_word.pkl', 'wb')as f:
-        pickle.dump(di, f)
+    # with open('all_word.pkl', 'wb')as f:
+    #     pickle.dump(di, f)
 

@@ -20,6 +20,8 @@ from ply import lex, yacc
 import pickle
 from collections import Counter
 
+import config
+
 
 def read_data_counter(file_path='all_word.pkl'):
     with open(file_path, 'rb') as f:
@@ -68,13 +70,13 @@ class Parser(object):
 
 
 class CodeDataset(Dataset):
-    def __init__(self, data_path='../ASE_javacode/*'):
+    def __init__(self, data_path='../ASE_javacode/*',data_num=100):
         parser = Parser()
         lis = glob.glob(data_path)
         self.All_sentences = []
         self.All_next_word = []
         di = read_data_counter()
-        di_5 = set([k for k, v in di.items() if v > 5])
+        di_5 = set([k for k, v in di.items() if v > 50])
         di_5.add('<unk>')
 
         words = sorted(list(di_5))
@@ -83,7 +85,7 @@ class CodeDataset(Dataset):
         # torch.nn.functional.one_hot()
         # 不能使用eye 生成  会爆内存
         
-        maxlen = 30
+        maxlen = config.max_size
 
         for j in range(len(lis)):
             print(f'{j}/{len(lis)}  {lis[j]}')
@@ -98,15 +100,16 @@ class CodeDataset(Dataset):
                     elif word.value not in di_5:
                         all_words1.append('<unk>')
                     else:
+
                         all_words1.append(word.value)
             except Exception:
                 continue
             for i in range(0, len(all_words1) - maxlen):
                 self.All_sentences.append(all_words1[i: i + maxlen])
-                self.All_next_word.append(all_words1[i + maxlen])
+                self.All_next_word.append(all_words1[i+1:i + maxlen+1])
                 # print('test',all_words1[i: i + maxlen],all_words1[i + maxlen])
 
-            if j == 500:
+            if j == data_num:
                 break
 
     def __getitem__(self, index):
@@ -115,7 +118,7 @@ class CodeDataset(Dataset):
         #        self.All_next_word[index]
 
         return torch.tensor([ self.word_indices[i] for i in self.All_sentences[index]]),\
-               torch.tensor(self.word_indices[self.All_next_word[index]])
+               torch.tensor([ self.word_indices[i] for i in self.All_next_word[index]])
 
     def __len__(self):
         return len(self.All_next_word)

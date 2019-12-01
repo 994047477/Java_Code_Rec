@@ -18,12 +18,12 @@ import numpy as np
 from PIL import Image
 import os
 import random
+
+import config
 from Model import Code_Rec_Model
-from dataset import CodeDataset
+from dataset import CodeDataset, read_data_counter
 import os
 
-
-# os.environ['CUDA_VISIBLE_DEVICES']='0,1'
 from torch.utils.data.sampler import SubsetRandomSampler
 
 
@@ -56,68 +56,89 @@ def prepare_train_valid_loaders(trainset, valid_size=0.2,
                                                sampler=valid_sampler)
 
     return train_loader, valid_loader
+
+
 def train():
     dataset = CodeDataset()
     # print(dataset)
-    batch_size = 32
-    vocab_size = 1494348
-    embedding_size = 300
-    hidden_size =10
+    batch_size = config.batch_size
+    vocab_size = config.vocab_size  # >5的时候size是1494348
+    embedding_size = config.embedding_size
+    hidden_size = config.hidden_size
 
-    train_loader, valid_loader = prepare_train_valid_loaders(dataset,0.1,batch_size)
+    train_loader, valid_loader = prepare_train_valid_loaders(dataset, 0.1, batch_size)
 
     # dataloader = DataLoader(dataset=dataset, batch_size=batch_size)
-    model = Code_Rec_Model(vocab_size, embedding_size,hidden_size).cuda()
-
-    loss_fn = nn.CrossEntropyLoss()
+    model = Code_Rec_Model(vocab_size, embedding_size, hidden_size).cuda()
+    # model = torch.nn.DataParallel(model)
+    di = read_data_counter()
+    di_5 = set([k for k, v in di.items() if v > 50])
+    di_5.add('<unk>')
+    words = sorted(list(di_5))
+    weights = []
+    # for word in words:
+    #     we =0.00
+    #     if word in ['<unk>','<num>','<str>'] or di[word]>50000 :
+    #         we =0.001
+    #     elif di[word]>5000:
+    #         we =0.01
+    #     elif di[word]>500:
+    #         we = 0.1
+    #     else:
+    #         we =1.0
+    #     weights.append(we)
+    # print(len(weights))
+    # loss_fn = nn.CrossEntropyLoss(weight=torch.tensor(weights).cuda() ).cuda()
+    loss_fn = nn.CrossEntropyLoss().cuda()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
     epochs = 100
+    hidden = None
     for epoch in range(epochs):
         model.train()
         print(f'epoch[{epoch}]/[{epochs}]')
         for i, (X, Y) in enumerate(train_loader):
+            hidden = model.init_hidden()
             if torch.cuda.is_available():
                 X = X.cuda()
                 Y = Y.cuda()
-            # hidden = model.init_hidden(batch_size)
-            out_vocab, hidden = model(X)
-            out_vocab = out_vocab.view(-1, vocab_size)
-            loss = loss_fn(out_vocab, Y)
             optimizer.zero_grad()
+            out_vocab, hidden = model(X, hidden)
+            # out_vocab = out_vocab.view(-1, vocab_size)
+            loss = loss_fn(out_vocab.view(-1, vocab_size), Y.view(-1))
+
             loss.backward()
+            # torch.nn.utils.clip_grad_norm(model.parameters(), 0.25)
             optimizer.step()
-            # print(loss)
-            # print(f'i:{i} , loss:{loss}')
-            # print(out_vocab)
-            # print(Y)
-            # print(np.shape(out_vocab))
-            # print(np.shape(Y))
-        if epoch%3==1 :
+        if True:
             # validation
             model.eval()
-            acc=0.0
-            sum1 =0
-            all_sum =0
+            acc = 0.0
+            sum1 = 0
+            all_sum = 0
             for i1, (X1, Y1) in enumerate(valid_loader):
                 if torch.cuda.is_available():
                     X1 = X1.cuda()
                     Y1 = Y1.cuda()
                 out_vocab, hidden = model(X1)
                 out_vocab = out_vocab.view(-1, vocab_size)
-                _,pred = torch.max(out_vocab,1)
+                _, pred = torch.max(out_vocab, 1)
                 # loss = loss_fn(out_vocab, Y1)
-                print(pred)
+                # print(pred)
+                # print(np.shape(pred))
+                # print(np.shape(Y1.data) )
                 # print(np.shape(pred))# shape:[32]
                 # print(np.shape(Y1))
-                sum1+=torch.sum(pred == Y1.data).item()
-                all_sum+=len(Y1)
-                acc = sum1*1.0/all_sum
-            print(sum1,all_sum)
+                sum1 += torch.sum(pred == Y1.view(-1).data).item()
+
+                all_sum += len(Y1.view(-1))
+                acc = sum1 * 1.0 / all_sum
+
+            # print(sum1, all_sum)
             print(f'[{epoch}]/[{epochs}]  accuracy:{acc:.6f}')
-            if epoch%6==1:
+            if epoch % 2 == 1:
                 torch.save(model.state_dict(), f'pkls/params_{epoch}_{acc:.6f}.pkl')
 
 
