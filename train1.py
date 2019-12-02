@@ -3,10 +3,9 @@
 '''
 @author: leexuan
 @contact: xuanli19@fudan.edu.cn
-@Time : 2019-11-02 18:48
-@desc: 
+@Time : 2019/12/2 下午6:49
+@desc: 训练 TextCNN model
 '''
-
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -20,7 +19,7 @@ import os
 import random
 
 import config
-from Model import Code_Rec_Model
+from Model import Code_Rec_Model, Code_Rec_Model_enhanced
 from dataset import CodeDataset, read_data_counter
 import os
 
@@ -59,7 +58,7 @@ def prepare_train_valid_loaders(trainset, valid_size=0.2,
 
 
 def train():
-    dataset = CodeDataset(data_num=500)
+    dataset = CodeDataset(data_num=10)
     # print(dataset)
     batch_size = config.batch_size
     vocab_size = config.vocab_size  # >5的时候size是1494348
@@ -69,21 +68,16 @@ def train():
     train_loader, valid_loader = prepare_train_valid_loaders(dataset, 0.1, batch_size)
 
     # dataloader = DataLoader(dataset=dataset, batch_size=batch_size)
-    model = Code_Rec_Model(vocab_size, embedding_size, hidden_size).cuda()
-
-
+    model = Code_Rec_Model_enhanced().cuda()
     # model = torch.nn.DataParallel(model)
     di = read_data_counter()
     di_5 = set([k for k, v in di.items() if v > 50])
     di_5.add('<unk>')
     words = sorted(list(di_5))
-    weights = []
 
-    loss_fn = nn.CrossEntropyLoss(weight=torch.tensor(weights).cuda() ).cuda()
     loss_fn = nn.CrossEntropyLoss().cuda()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
     epochs = 100
     hidden = None
@@ -91,13 +85,20 @@ def train():
         model.train()
         print(f'epoch[{epoch}]/[{epochs}]')
         for i, (X, Y) in enumerate(train_loader):
-            hidden = model.init_hidden()
+
             if torch.cuda.is_available():
                 X = X.cuda()
                 Y = Y.cuda()
             optimizer.zero_grad()
-            out_vocab, hidden = model(X, hidden)
+            out_vocab = model(X)
             # out_vocab = out_vocab.view(-1, vocab_size)
+            print(out_vocab)
+            print(np.shape(out_vocab))
+            _,out1 = torch.max(out_vocab,0)
+            print(out1)
+            print(np.shape(out1))
+
+
             loss = loss_fn(out_vocab.view(-1, vocab_size), Y.view(-1))
 
             loss.backward()
@@ -116,6 +117,12 @@ def train():
                 out_vocab, hidden = model(X1)
                 out_vocab = out_vocab.view(-1, vocab_size)
                 _, pred = torch.max(out_vocab, 1)
+                # loss = loss_fn(out_vocab, Y1)
+                # print(pred)
+                # print(np.shape(pred))
+                # print(np.shape(Y1.data) )
+                # print(np.shape(pred))# shape:[32]
+                # print(np.shape(Y1))
                 sum1 += torch.sum(pred == Y1.view(-1).data).item()
 
                 all_sum += len(Y1.view(-1))
