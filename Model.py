@@ -27,13 +27,13 @@ class Code_Rec_Model(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size):
         super(Code_Rec_Model, self).__init__()
         self.word_embedding = nn.Embedding(vocab_size, embedding_size)
-        self.lstm = nn.LSTM(embedding_size, hidden_size,num_layers=config.num_layers)
+        self.lstm = nn.GRU(embedding_size, hidden_size,num_layers=config.num_layers,bidirectional=True)
         self.drop = nn.Dropout(0.5)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.linear = nn.Linear(hidden_size*2, vocab_size)
 
     def forward(self, text,hidden=None):
         emb = self.word_embedding(text)  # batch_size ,sequence , embedding
-        output, hidden = self.lstm(emb,hidden)  # 2,30,10  ,   2个tuple(30,10)
+        output, hidden = self.lstm(emb)  # 2,30,10  ,   2个tuple(30,10)
         output = self.drop(output)
         decoded = self.linear(output.view(output.size(0) * output.size(1), output.size(2)))
         return decoded.view(output.size(0), output.size(1), decoded.size(1)), hidden
@@ -42,8 +42,8 @@ class Code_Rec_Model(nn.Module):
     def init_hidden(self, requires_grad=True):
         # return (weight.new_zeros((30, bsz, 10), requires_grad=requires_grad),
         #             weight.new_zeros((30, bsz, 10), requires_grad=requires_grad))
-        return (torch.rand((config.num_layers, config.max_size, config.hidden_size),requires_grad=requires_grad).cuda(),\
-               torch.rand(((config.num_layers, config.max_size, config.hidden_size)),requires_grad=requires_grad).cuda())
+        return (torch.rand((config.num_layers*2, config.max_size, config.hidden_size),requires_grad=requires_grad).cuda(),\
+               torch.rand(((config.num_layers*2, config.max_size, config.hidden_size)),requires_grad=requires_grad).cuda())
 
 
 class Code_Rec_Model_enhanced(nn.Module):

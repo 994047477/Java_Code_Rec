@@ -26,6 +26,7 @@ import os
 from torch.utils.data.sampler import SubsetRandomSampler
 
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 def prepare_train_valid_loaders(trainset, valid_size=0.2,
                                 batch_size=32):
     '''
@@ -94,16 +95,14 @@ def train():
             # out_vocab = out_vocab.view(-1, vocab_size)
             print(out_vocab)
             print(np.shape(out_vocab))
-            _,out1 = torch.max(out_vocab,0)
-            print(out1)
-            print(np.shape(out1))
-
-
-            loss = loss_fn(out_vocab.view(-1, vocab_size), Y.view(-1))
-
+            print(np.shape(Y))
+            Y =torch.tensor([ y[-1] for y in Y ]).cuda()
+            print(np.shape(Y))
+            loss = loss_fn(out_vocab, Y)
             loss.backward()
             # torch.nn.utils.clip_grad_norm(model.parameters(), 0.25)
             optimizer.step()
+
         if True:
             # validation
             model.eval()
@@ -114,19 +113,23 @@ def train():
                 if torch.cuda.is_available():
                     X1 = X1.cuda()
                     Y1 = Y1.cuda()
-                out_vocab, hidden = model(X1)
-                out_vocab = out_vocab.view(-1, vocab_size)
-                _, pred = torch.max(out_vocab, 1)
-                # loss = loss_fn(out_vocab, Y1)
-                # print(pred)
-                # print(np.shape(pred))
-                # print(np.shape(Y1.data) )
-                # print(np.shape(pred))# shape:[32]
-                # print(np.shape(Y1))
-                sum1 += torch.sum(pred == Y1.view(-1).data).item()
+                Y1 = torch.tensor([y1[-1] for y1 in Y1]).cuda()
+                out_vocab= model(X1)
+                print(out_vocab)
+                print(np.shape(out_vocab))
+                out_vocab = out_vocab[-1]
+                _,res = torch.topk(out_vocab,5)
+                print(res)
+                print([ words[i] for i in res])
+                print('----------------')
 
-                all_sum += len(Y1.view(-1))
-                acc = sum1 * 1.0 / all_sum
+                # out_vocab = out_vocab.view(-1, vocab_size)
+                #
+                # _, pred = torch.max(out_vocab, 1)
+                sum1 += torch.sum(res[-1].data== Y1.data).item()
+
+                all_sum += len(Y1)
+            acc = sum1 * 1.0 / all_sum
 
             # print(sum1, all_sum)
             print(f'[{epoch}]/[{epochs}]  accuracy:{acc:.6f}')

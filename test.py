@@ -46,14 +46,14 @@ public class Demo{
     public byte[] sign(String message, String digestAlgorithm, PrivateKey pk) throws GeneralSecurityException {
         byte[] messageByte = message.getBytes();
         String signMode = null;
-        if(pk == null){
-            pk = getPrivateKey("RSA");
-            String encryptionAlgorithm = pk.getAlgorithm();
-            signMode = combine(encryptionAlgorithm,digestAlgorithm);
-        }else{ 
-            String encryptionAlgorithm = pk.getAlgorithm();
-            signMode = combine(encryptionAlgorithm,digestAlgorithm);
-        }
+        //if(pk == null){
+        //    pk = getPrivateKey("RSA");
+        //    String encryptionAlgorithm = pk.getAlgorithm();
+        //    signMode = combine(encryptionAlgorithm,digestAlgorithm);
+        //}else{ 
+        //    String encryptionAlgorithm = pk.getAlgorithm();
+        //    signMode = combine(encryptionAlgorithm,digestAlgorithm);
+        //}
         $hole$
         
     }

@@ -26,6 +26,7 @@ import os
 
 from torch.utils.data.sampler import SubsetRandomSampler
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 def prepare_train_valid_loaders(trainset, valid_size=0.2,
                                 batch_size=32):
@@ -59,7 +60,7 @@ def prepare_train_valid_loaders(trainset, valid_size=0.2,
 
 
 def train():
-    dataset = CodeDataset(data_num=500)
+    dataset = CodeDataset(data_num=1000)
     # print(dataset)
     batch_size = config.batch_size
     vocab_size = config.vocab_size  # >5的时候size是1494348
@@ -83,6 +84,7 @@ def train():
     loss_fn = nn.CrossEntropyLoss().cuda()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.RMSprop(model.parameters())
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
     epochs = 100
