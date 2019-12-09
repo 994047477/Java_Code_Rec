@@ -25,7 +25,7 @@ import os
 from torch.utils.data.sampler import SubsetRandomSampler
 
 def test():
-    dataset = CodeDataset(data_num=500)
+    dataset = CodeDataset(data_num=10)
     # print(dataset)
     batch_size = config.batch_size
     vocab_size = config.vocab_size  # >5的时候size是1494348
@@ -37,7 +37,7 @@ def test():
     model = Code_Rec_Model(vocab_size, embedding_size, hidden_size).cuda()
     # with open('pkls/params_9_0.394187.pkl') as f:
     #     model.load_state_dict(f)
-    model.load_state_dict(torch.load('pkls/params_15_0.420176.pkl'))
+    model.load_state_dict(torch.load('pkls/params_1_0.400220.pkl'))
     model.eval()
     # model = torch.nn.DataParallel(model)
     di = read_data_counter()

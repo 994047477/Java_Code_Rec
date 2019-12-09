@@ -34,28 +34,29 @@ hidden_size = config.hidden_size
 
 # dataloader = DataLoader(dataset=dataset, batch_size=batch_size)
 model = Code_Rec_Model(vocab_size, embedding_size, hidden_size).cuda()
-model.load_state_dict(torch.load('pkls/params_9_0.417899.pkl'))
+model.load_state_dict(torch.load('pkls/params_1_0.400220.pkl'))
 model.eval()
 # print(model)
 parser = Parser()
 res = parser.tokenize_string('''
-import java.security.GeneralSecurityException;
-import java.security.PrivateKey;
-import com.google.gson.internal.$Gson$Types;
-public class Demo{
-    public byte[] sign(String message, String digestAlgorithm, PrivateKey pk) throws GeneralSecurityException {
-        byte[] messageByte = message.getBytes();
-        String signMode = null;
-        if(pk == null){
-            pk = getPrivateKey("RSA");
-            String encryptionAlgorithm = pk.getAlgorithm();
-            signMode = combine(encryptionAlgorithm,digestAlgorithm);
-        }else{ 
-            String encryptionAlgorithm = pk.getAlgorithm();
-            signMode = combine(encryptionAlgorithm,digestAlgorithm);
-        }
-        $hole$
-        
+public class MyMapper implements PartitionMapper {
+
+    @Override
+    public PartitionPlan mapPartitions() throws Exception {
+        return new PartitionPlanImpl() {
+            @Override
+            public Properties[] getPartitionProperties() {
+                
+                Properties[] props = new Properties[getPartitions()];
+                $hole$
+                for (int i = 0; i < getPartitions(); i++) {
+                    props[i] = new Properties();
+                    props[i].setProperty("start", String.valueOf(i * 10 + 1));
+                    props[i].setProperty("end", String.valueOf((i + 1) * 10));
+                }
+                return props;
+            }
+        };
     }
 }
 ''')

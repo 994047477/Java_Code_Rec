@@ -30,7 +30,12 @@ class Code_Rec_Model(nn.Module):
         self.lstm = nn.LSTM(embedding_size, hidden_size,num_layers=config.num_layers)
         self.drop = nn.Dropout(0.5)
         self.linear = nn.Linear(hidden_size, vocab_size)
-
+        # self.linear = nn.Sequential(
+        #     nn.Linear(hidden_size, 1000),
+        #     nn.Dropout(0.5),  # drop 50% of the neuron
+        #     nn.ReLU(),
+        #     nn.Linear(1000,vocab_size)
+        # )
     def forward(self, text,hidden=None):
         emb = self.word_embedding(text)  # batch_size ,sequence , embedding
         output, hidden = self.lstm(emb,hidden)  # 2,30,10  ,   2个tuple(30,10)
@@ -38,12 +43,13 @@ class Code_Rec_Model(nn.Module):
         decoded = self.linear(output.view(output.size(0) * output.size(1), output.size(2)))
         return decoded.view(output.size(0), output.size(1), decoded.size(1)), hidden
 
-    # TODO 检查hidden
     def init_hidden(self, requires_grad=True):
         # return (weight.new_zeros((30, bsz, 10), requires_grad=requires_grad),
         #             weight.new_zeros((30, bsz, 10), requires_grad=requires_grad))
         return (torch.rand((config.num_layers, config.max_size, config.hidden_size),requires_grad=requires_grad).cuda(),\
                torch.rand(((config.num_layers, config.max_size, config.hidden_size)),requires_grad=requires_grad).cuda())
+
+
 
 
 class Code_Rec_Model_enhanced(nn.Module):
