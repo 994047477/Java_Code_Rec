@@ -27,6 +27,7 @@ import os
 from torch.utils.data.sampler import SubsetRandomSampler
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+
 def prepare_train_valid_loaders(trainset, valid_size=0.2,
                                 batch_size=32):
     '''
@@ -97,6 +98,7 @@ def train():
     # loss_fn = nce.NCELoss(Q, 25, 9.5).cuda()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.RMSprop(model.parameters())
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
     epochs = 100

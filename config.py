@@ -6,6 +6,7 @@
 @Time : 2019/11/28 下午3:21
 @desc: 
 '''
+
 max_size = 55
 batch_size = 32
 hidden_size = 512
