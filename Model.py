@@ -29,7 +29,7 @@ class Code_Rec_Model(nn.Module):
         self.word_embedding = nn.Embedding(vocab_size, embedding_size)
         self.lstm = nn.GRU(embedding_size, hidden_size,num_layers=config.num_layers,bidirectional=True)
         self.drop = nn.Dropout(0.5)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+        self.linear = nn.Linear(hidden_size*2, vocab_size)
         # self.linear = nn.Sequential(
         #     nn.Linear(hidden_size, 1000),
         #     nn.Dropout(0.5),  # drop 50% of the neuron
