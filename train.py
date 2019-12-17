@@ -26,7 +26,7 @@ import os
 
 from torch.utils.data.sampler import SubsetRandomSampler
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 def prepare_train_valid_loaders(trainset, valid_size=0.2,
                                 batch_size=32):
@@ -62,6 +62,7 @@ def prepare_train_valid_loaders(trainset, valid_size=0.2,
 def train():
     dataset = CodeDataset(data_num=300)
     # print(dataset)
+
     batch_size = config.batch_size
     vocab_size = config.vocab_size  # >5的时候size是1494348
     embedding_size = config.embedding_size
@@ -75,17 +76,17 @@ def train():
 
     # model = torch.nn.DataParallel(model)
     di = read_data_counter()
-    di_5 = set([k for k, v in di.items() if v > 50])
+    di_5 = set([k for k, v in di.items() if v > 5])
     di_5.add('<unk>')
     words = sorted(list(di_5))
     weights = []
-    di_test = { k:v for k, v in di.items() if v > 50}
+    di_test = { k:v for k, v in di.items() if v > 5}
     di_test['<unk>']=1000
 
     freq = [0] * len(words)
     for idx in range(len(words)):
         if words[idx] in ['<str>','<num>','<unk>']:
-            freq[idx] = 1000
+            freq[idx] = 10000
         else:
             freq[idx] = di[words[idx]]
     Q = np.array(freq)
@@ -93,12 +94,10 @@ def train():
     Q = torch.FloatTensor(Q).cuda()
     # loss_fn = nn.CrossEntropyLoss(weight=torch.tensor(weights).cuda() ).cuda()
     loss_fn = nn.CrossEntropyLoss().cuda()
-    # Q = Q_from_tokens(corpus.train, corpus.dictionary)
-
-    # loss_fn = nce.NCELoss(Q, 25, 9.5).cuda()
+    loss_fn = nce.NCELoss(Q, 25, 9.5).cuda()
     learning_rate = 0.001
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    optimizer = torch.optim.RMSprop(model.parameters())
+    # optimizer = torch.optim.RMSprop(model.parameters())
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.5)
 
     epochs = 100
@@ -116,7 +115,7 @@ def train():
             # out_vocab = out_vocab.view(-1, vocab_size)
             loss = loss_fn(out_vocab.view(-1, vocab_size), Y.view(-1))
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.30)
             optimizer.step()
         if True:
             # validation

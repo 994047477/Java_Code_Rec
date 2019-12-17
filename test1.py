@@ -37,7 +37,7 @@ def test():
     model = Code_Rec_Model(vocab_size, embedding_size, hidden_size).cuda()
     # with open('pkls/params_9_0.394187.pkl') as f:
     #     model.load_state_dict(f)
-    model.load_state_dict(torch.load('pkls/params_1_0.400220.pkl'))
+    model.load_state_dict(torch.load('pkls/params_75_0.421216.pkl'))
     model.eval()
     # model = torch.nn.DataParallel(model)
     di = read_data_counter()

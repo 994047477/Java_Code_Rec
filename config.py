@@ -7,10 +7,10 @@
 @desc: 
 '''
 
-max_size = 55
-batch_size = 32
+max_size = 40
+batch_size = 512*2
 hidden_size = 512
-vocab_size = 183298   # >5的时候size是1494348
+vocab_size = 6290 # 183298   # >5的时候size是1494348
 embedding_size = 500
 num_layers = 1
 
@@ -48,3 +48,21 @@ num_layers = 1
 # [5]/[100]  accuracy:0.409157
 # [5]/[100]  top5 accuracy:0.696637
 # epoch[6]/[100]
+# [6]/[100]  accuracy:0.409320
+# [6]/[100]  top5 accuracy:0.696985
+# epoch[7]/[100]
+# [7]/[100]  accuracy:0.409700
+# [7]/[100]  top5 accuracy:0.697106
+# epoch[8]/[100]
+# [8]/[100]  accuracy:0.410099
+# [8]/[100]  top5 accuracy:0.697265
+# epoch[9]/[100]
+# [9]/[100]  accuracy:0.409479
+# [9]/[100]  top5 accuracy:0.697005
+# epoch[10]/[100]
+# [10]/[100]  accuracy:0.409032
+# [10]/[100]  top5 accuracy:0.697365
+# epoch[11]/[100]
+# [11]/[100]  accuracy:0.410068
+# [11]/[100]  top5 accuracy:0.696966
+# epoch[12]/[100]

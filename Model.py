@@ -27,9 +27,10 @@ class Code_Rec_Model(nn.Module):
     def __init__(self, vocab_size, embedding_size, hidden_size):
         super(Code_Rec_Model, self).__init__()
         self.word_embedding = nn.Embedding(vocab_size, embedding_size)
-        self.lstm = nn.GRU(embedding_size, hidden_size,num_layers=config.num_layers,bidirectional=True)
+        self.lstm = nn.LSTM(embedding_size, hidden_size,num_layers=config.num_layers,bidirectional=True)
         self.drop = nn.Dropout(0.5)
-        self.linear = nn.Linear(hidden_size, vocab_size)
+
+        # self.linear = nn.Linear(hidden_size, vocab_size)
         # self.linear = nn.Sequential(
         #     nn.Linear(hidden_size, 1000),
         #     nn.Dropout(0.5),  # drop 50% of the neuron
@@ -37,13 +38,14 @@ class Code_Rec_Model(nn.Module):
         #     nn.Linear(1000,vocab_size)
         # )
 
-        # self.linear = nn.Linear(hidden_size*2, vocab_size)
+        self.linear = nn.Linear(hidden_size*2, vocab_size)
 
     def forward(self, text,hidden=None):
         emb = self.word_embedding(text)  # batch_size ,sequence , embedding
-        output, hidden = self.lstm(emb)  # 2,30,10  ,   2个tuple(30,10)
+        output, hidden = self.lstm(emb,hidden)
         output = self.drop(output)
         decoded = self.linear(output.view(output.size(0) * output.size(1), output.size(2)))
+        # decoded = nn.Softmax(decoded)
         return decoded.view(output.size(0), output.size(1), decoded.size(1)), hidden
 
     def init_hidden(self, requires_grad=True):
@@ -53,6 +55,40 @@ class Code_Rec_Model(nn.Module):
                torch.rand(((config.num_layers*2, config.max_size, config.hidden_size)),requires_grad=requires_grad).cuda())
 
 
+
+class Code_Rec_Model_attention(nn.Module):
+    '''
+        a simple lstm model
+    '''
+    def __init__(self, vocab_size, embedding_size, hidden_size):
+        super(Code_Rec_Model, self).__init__()
+        self.word_embedding = nn.Embedding(vocab_size, embedding_size)
+        self.lstm = nn.LSTM(embedding_size, hidden_size,num_layers=config.num_layers,bidirectional=True)
+        self.drop = nn.Dropout(0.5)
+
+        # self.linear = nn.Linear(hidden_size, vocab_size)
+        # self.linear = nn.Sequential(
+        #     nn.Linear(hidden_size, 1000),
+        #     nn.Dropout(0.5),  # drop 50% of the neuron
+        #     nn.ReLU(),
+        #     nn.Linear(1000,vocab_size)
+        # )
+
+        self.linear = nn.Linear(hidden_size*2, vocab_size)
+
+    def forward(self, text,hidden=None):
+        emb = self.word_embedding(text)  # batch_size ,sequence , embedding
+        output, hidden = self.lstm(emb,hidden)
+        output = self.drop(output)
+        decoded = self.linear(output.view(output.size(0) * output.size(1), output.size(2)))
+        decoded = nn.Softmax(decoded)
+        return decoded.view(output.size(0), output.size(1), decoded.size(1)), hidden
+
+    def init_hidden(self, requires_grad=True):
+        # return (weight.new_zeros((30, bsz, 10), requires_grad=requires_grad),
+        #             weight.new_zeros((30, bsz, 10), requires_grad=requires_grad))
+        return (torch.rand((config.num_layers*2, config.max_size, config.hidden_size),requires_grad=requires_grad).cuda(),\
+               torch.rand(((config.num_layers*2, config.max_size, config.hidden_size)),requires_grad=requires_grad).cuda())
 
 
 class Code_Rec_Model_enhanced(nn.Module):
@@ -113,7 +149,6 @@ class Code_Rec_Model_enhanced(nn.Module):
         # x: (batch, sentence_length)
         x = self.embed(input)
         # x: (batch, sentence_length, embed_dim)
-        # TODO init embed matrix with pre-trained
         x = x.unsqueeze(1)
         # x: (batch, 1, sentence_length, embed_dim)
         x1 = self.conv_and_pool(x, self.conv11)  # (batch, kernel_num)

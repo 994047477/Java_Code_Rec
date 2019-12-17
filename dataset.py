@@ -23,7 +23,7 @@ from collections import Counter
 import config
 
 
-def read_data_counter(file_path='all_word.pkl'):
+def read_data_counter(file_path='all_word_1000.pkl'):
     with open(file_path, 'rb') as f:
         di = pickle.load(f)
     return di
@@ -76,7 +76,7 @@ class CodeDataset(Dataset):
         self.All_sentences = []
         self.All_next_word = []
         di = read_data_counter()
-        di_5 = set([k for k, v in di.items() if v > 50])
+        di_5 = set([k for k, v in di.items() if v > 5])
         di_5.add('<unk>')
 
         words = sorted(list(di_5))

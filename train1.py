@@ -72,7 +72,7 @@ def train():
     model = Code_Rec_Model_enhanced().cuda()
     # model = torch.nn.DataParallel(model)
     di = read_data_counter()
-    di_5 = set([k for k, v in di.items() if v > 50])
+    di_5 = set([k for k, v in di.items() if v > 5])
     di_5.add('<unk>')
     words = sorted(list(di_5))
 
